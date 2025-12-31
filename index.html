@@ -70,11 +70,11 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-        // Konfigurasi Firebase Anda
+    try {
         const firebaseConfig = {
             apiKey: "AIzaSyBxCvCw6F2AJFvkczKHRZAKrk2nOu97BQQ",
             authDomain: "newyear-2025-9f131.firebaseapp.com",
@@ -88,21 +88,34 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Validasi Kirim Sekali
-        window.sendWish = function() {
-            const input = document.getElementById('wishInput');
-            const text = input.value.trim();
+        // Langsung jalankan fungsi countdown tanpa menunggu
+        initCountdown(db);
+    } catch (e) {
+        console.error("Firebase Error:", e);
+        // Tetap jalankan countdown meskipun Firebase gagal
+        initCountdown(null);
+    }
 
-            if (localStorage.getItem('sent_2026')) {
-                alert("Anda sudah mengirimkan harapan!");
-                return;
-            }
+    function initCountdown(db) {
+        const target = new Date(2026, 0, 1, 0, 0, 0).getTime();
+        const timerUpdate = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = target - now;
 
-            if (text) {
-                push(ref(db, 'wishes'), {
-                    text: text,
-                    timestamp: Date.now()
-                });
-                localStorage.setItem('sent_2026', 'true');
-                document.getElementById('input-area').innerHTML = "<p style='color:#00ff41'>Harapan Anda telah tersimpan di semesta 2026.</p>";
+            if (diff <= 0) {
+                clearInterval(timerUpdate);
+                document.getElementById('title').innerText = "HAPPY NEW YEAR 2026";
+                document.getElementById('timer').style.display = "none";
+                document.getElementById('wish-container').style.display = "block";
+                if (db) window.loadWishes(db);
+                startFireworks();
+            } else {
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                document.getElementById('timer').innerText = `${d}D ${h}H ${m}M ${s}S`;
             }
+        }, 1000);
+    }
+</script>
