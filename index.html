@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Countdown 2026</title>
+    <title>Countdown 2027</title>
    <style>
     body { 
         /* Efek Galaxy Spiral */
@@ -84,7 +84,7 @@
 <body>
     <canvas id="canvas"></canvas>
     <div id="content">
-        <h1 id="title">COUNTDOWN 2026</h1>
+        <h1 id="title">COUNTDOWN 2027</h1>
         <div id="timer">SYNCHRONIZING...</div>
         <div id="wish-container">
             <div id="input-area">
@@ -159,7 +159,7 @@
     }
 
     // Countdown Logic
-    const target = new Date(targetYear, 0, 1, 0, 0, 0).getTime();
+    const target = new Date(targetYear = 2027, 0, 1, 0, 0, 0).getTime();
     const timerUpdate = setInterval(() => {
         const diff = target - new Date().getTime();
 
@@ -184,6 +184,7 @@
 </script>
 </body>
 </html>
+
 
 
 
