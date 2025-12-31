@@ -2,29 +2,70 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome 2026 - Celebration</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        body { 
+            background: #050505; color: #00ff41; 
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100vh; margin: 0; overflow: hidden;
+        }
         canvas { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
         #content { z-index: 10; text-align: center; width: 90%; max-width: 600px; }
-        h1 { font-size: 4rem; margin: 0; text-shadow: 0 0 10px #00ff41; }
-        #timer { font-size: 2rem; color: #fff; margin: 20px 0; }
-        #wish-container { display: none; background: rgba(0, 255, 65, 0.1); padding: 20px; border: 1px solid #00ff41; border-radius: 10px; }
-        input { background: #000; border: 1px solid #00ff41; color: #fff; padding: 10px; width: 70%; font-family: inherit; }
-        button { background: #00ff41; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
-        #wishList { margin-top: 20px; text-align: left; max-height: 200px; overflow-y: auto; border-top: 1px dashed #00ff41; padding-top: 10px; }
-        .wish-item { margin-bottom: 8px; font-size: 0.9rem; border-bottom: 1px solid rgba(0,255,65,0.1); padding-bottom: 4px; }
+        
+        /* Typography */
+        h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 0; text-shadow: 0 0 15px #00ff41; letter-spacing: 5px; }
+        #timer { font-size: clamp(1rem, 5vw, 2.5rem); color: #fff; margin: 20px 0; font-weight: bold; }
+        
+        /* Wish System UI */
+        #wish-container { 
+            display: none; background: rgba(0, 255, 65, 0.05); 
+            padding: 25px; border: 1px solid #00ff41; border-radius: 15px;
+            backdrop-filter: blur(5px); animation: fadeIn 1s ease-in;
+        }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { 
+            background: #000; border: 1px solid #00ff41; color: #fff; 
+            padding: 12px; flex-grow: 1; font-family: inherit; outline: none;
+        }
+        button { 
+            background: #00ff41; border: none; padding: 12px 25px; 
+            cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        button:hover { background: #fff; color: #000; }
+        
+        #wishList { 
+            margin-top: 15px; text-align: left; max-height: 250px; 
+            overflow-y: auto; border-top: 1px dashed rgba(0, 255, 65, 0.3); padding-top: 15px;
+        }
+        .wish-item { 
+            margin-bottom: 10px; font-size: 1rem; color: #fff;
+            border-left: 3px solid #00ff41; padding-left: 10px; animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Scrollbar Style */
+        #wishList::-webkit-scrollbar { width: 5px; }
+        #wishList::-webkit-scrollbar-thumb { background: #00ff41; }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    
     <div id="content">
-        <h1 id="title">COUNTDOWN 2026</h1>
+        <h1 id="title">PREPARING 2026</h1>
         <div id="timer">SYNCHRONIZING...</div>
         
         <div id="wish-container">
-            <input type="text" id="wishInput" placeholder="Tulis harapanmu untuk 2026...">
-            <button onclick="sendWish()">KIRIM</button>
+            <div id="input-area">
+                <div class="input-group">
+                    <input type="text" id="wishInput" placeholder="Tulis satu harapanmu untuk 2026..." maxlength="100">
+                    <button onclick="sendWish()">KIRIM</button>
+                </div>
+            </div>
             <div id="wishList"></div>
         </div>
     </div>
@@ -33,7 +74,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-        // Konfigurasi Firebase milikmu
+        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyBxCvCw6F2AJFvkczKHRZAKrk2nOu97BQQ",
             authDomain: "newyear-2025-9f131.firebaseapp.com",
@@ -47,78 +88,21 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Fungsi Global agar bisa dipanggil HTML
+        // Validasi Kirim Sekali
         window.sendWish = function() {
             const input = document.getElementById('wishInput');
-            if (input.value.trim()) {
-                push(ref(db, 'wishes'), { text: input.value, time: Date.now() });
-                input.value = "";
-            }
-        };
+            const text = input.value.trim();
 
-        window.loadWishes = function() {
-            onChildAdded(ref(db, 'wishes'), (snapshot) => {
-                const data = snapshot.val();
-                const item = document.createElement('div');
-                item.className = 'wish-item';
-                item.innerHTML = `<span style="color:#00ff41">></span> ${data.text}`;
-                document.getElementById('wishList').prepend(item);
-            });
-        };
-
-        // Logic Countdown
-        const target = new Date(2024, 0, 1, 0, 0, 0).getTime();
-        const timerEl = document.getElementById('timer');
-        const wishBox = document.getElementById('wish-container');
-
-        const x = setInterval(() => {
-            const now = new Date().getTime();
-            const diff = target - now;
-
-            if (diff < 0) {
-                clearInterval(x);
-                document.getElementById('title').innerText = "HAPPY NEW YEAR 2026!";
-                timerEl.style.display = 'none';
-                wishBox.style.display = 'block';
-                window.loadWishes();
-                startFireworks(); 
+            if (localStorage.getItem('sent_2026')) {
+                alert("Anda sudah mengirimkan harapan!");
                 return;
             }
 
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-            timerEl.innerText = `${d}D ${h}H ${m}M ${s}S`;
-        }, 1000);
-
-        // --- FIREWORKS ENGINE ---
-        function startFireworks() {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            let particles = [];
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            function animate() {
-                requestAnimationFrame(animate);
-                ctx.fillStyle = 'rgba(5,5,5,0.1)'; ctx.fillRect(0,0,canvas.width,canvas.height);
-                if(Math.random() > 0.9) launch(canvas, particles);
-                particles.forEach((p,i) => { p.update(); p.draw(ctx); if(p.life <= 0) particles.splice(i,1); });
+            if (text) {
+                push(ref(db, 'wishes'), {
+                    text: text,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('sent_2026', 'true');
+                document.getElementById('input-area').innerHTML = "<p style='color:#00ff41'>Harapan Anda telah tersimpan di semesta 2026.</p>";
             }
-            animate();
-        }
-        function launch(c, parts) {
-            const x = Math.random()*c.width, y = Math.random()*c.height/2;
-            for(let i=0; i<50; i++) parts.push(new Particle(x,y));
-        }
-        class Particle {
-            constructor(x,y) {
-                this.x=x; this.y=y; this.life=1; this.decay=Math.random()*0.02+0.01;
-                this.vel={x:Math.random()*6-3, y:Math.random()*6-3};
-                this.color = `hsl(${Math.random()*360}, 100%, 50%)`;
-            }
-            update() { this.x+=this.vel.x; this.y+=this.vel.y; this.vel.y+=0.05; this.life-=this.decay; }
-            draw(c) { c.fillStyle=this.color; c.globalAlpha=this.life; c.beginPath(); c.arc(this.x,this.y,2,0,Math.PI*2); c.fill(); }
-        }
-    </script>
-</body>
-</html>
