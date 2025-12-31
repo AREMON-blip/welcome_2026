@@ -56,7 +56,7 @@
     <canvas id="canvas"></canvas>
     
     <div id="content">
-        <h1 id="title">PREPARING 2026</h1>
+        <h1 id="title">cCOUNTDOWN 2026</h1>
         <div id="timer">SYNCHRONIZING...</div>
         
         <div id="wish-container">
@@ -97,7 +97,7 @@
     }
 
     function initCountdown(db) {
-        const target = new Date(2026, 0, 1, 0, 0, 0).getTime();
+        const target = new Date(2024, 0, 1, 0, 0, 0).getTime();
         const timerUpdate = setInterval(() => {
             const now = new Date().getTime();
             const diff = target - now;
@@ -119,3 +119,4 @@
         }, 1000);
     }
 </script>
+
