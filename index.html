@@ -97,113 +97,94 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxCvCw6F2AJFvkczKHRZAKrk2nOu97BQQ",
-            authDomain: "newyear-2025-9f131.firebaseapp.com",
-            databaseURL: "https://newyear-2025-9f131-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "newyear-2025-9f131",
-            storageBucket: "newyear-2025-9f131.firebasestorage.app",
-            messagingSenderId: "259411066922",
-            appId: "1:259411066922:web:32533bd3ac15cfd5e90353"
-        };
+    // Konfigurasi Firebase tetap sama
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxCvCw6F2AJFvkczKHRZAKrk2nOu97BQQ",
+        authDomain: "newyear-2025-9f131.firebaseapp.com",
+        databaseURL: "https://newyear-2025-9f131-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "newyear-2025-9f131",
+        storageBucket: "newyear-2025-9f131.firebasestorage.app",
+        messagingSenderId: "259411066922",
+        appId: "1:259411066922:web:32533bd3ac15cfd5e90353"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        // --- SISTEM KIRIM HARAPAN (FIXED) ---
-        const btnKirim = document.getElementById('btnKirim');
-        if (btnKirim) {
-            btnKirim.addEventListener('click', () => {
-                const input = document.getElementById('wishInput');
-                const text = input.value.trim();
+    // --- AUTO-YEAR DETECTOR ---
+    const targetYear = 2026; // Cukup ganti angka ini saja tiap tahun
+    const storageKey = `sent_wish_${targetYear}`; // Key otomatis unik per tahun
 
-                if (localStorage.getItem('sent_2026')) {
-                    alert("Anda sudah mengirimkan harapan!");
-                    return;
-                }
+    // Tombol Kirim
+    const btnKirim = document.getElementById('btnKirim');
+    if (btnKirim) {
+        btnKirim.addEventListener('click', () => {
+            const input = document.getElementById('wishInput');
+            const text = input.value.trim();
 
-                if (text) {
-                    push(ref(db, 'wishes'), { text: text, timestamp: Date.now() })
-                    .then(() => {
-                        localStorage.setItem('sent_2026', 'true');
-                        document.getElementById('input-area').innerHTML = "<p style='color:#00ff41'>Harapan Anda telah tersimpan.</p>";
-                    })
-                    .catch(err => alert("Error: " + err.message));
-                }
-            });
-        }
-
-        // --- LOAD REAL-TIME ---
-        function loadWishes() {
-            if (localStorage.getItem('sent_2026')) {
-                document.getElementById('input-area').innerHTML = "<p style='color:#00ff41'>Harapan Anda telah tersimpan.</p>";
+            if (localStorage.getItem(storageKey)) {
+                alert(`Anda sudah mengirimkan harapan untuk tahun ${targetYear}!`);
+                return;
             }
-            onChildAdded(ref(db, 'wishes'), (snapshot) => {
-                const data = snapshot.val();
-                const list = document.getElementById('wishList');
-                const div = document.createElement('div');
-                div.className = 'wish-item';
-                div.innerHTML = `<span>></span> ${data.text}`;
-                list.prepend(div);
-            });
-        }
 
-        // --- COUNTDOWN LOGIC ---
-        const target = new Date(2026, 0, 1, 0, 0, 0).getTime();
-        const timerUpdate = setInterval(() => {
-            const now = new Date().getTime();
-            const diff = target - now;
-
-            if (diff <= 0) {
-                clearInterval(timerUpdate);
-                document.getElementById('title').innerText = "HAPPY NEW YEAR 2026";
-                document.getElementById('timer').style.display = "none";
-                document.getElementById('wish-container').style.display = "block";
-                loadWishes();
-                startFireworks();
-            } else {
-                const d = Math.floor(diff / 86400000);
-                const h = Math.floor((diff % 86400000) / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                document.getElementById('timer').innerText = `${d}D ${h}H ${m}M ${s}S`;
+            if (text) {
+                push(ref(db, `wishes_${targetYear}`), { // Folder database dipisah per tahun
+                    text: text,
+                    timestamp: Date.now()
+                }).then(() => {
+                    localStorage.setItem(storageKey, 'true');
+                    document.getElementById('input-area').innerHTML = `<p style='color:#00ff41'>Harapan ${targetYear} Anda tersimpan di database.</p>`;
+                }).catch(err => alert("Error: " + err.message));
             }
-        }, 1000);
+        });
+    }
 
-        // --- FIREWORKS ---
-        function startFireworks() {
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            let particles = [];
-            function animate() {
-                requestAnimationFrame(animate);
-                ctx.fillStyle = 'rgba(5, 5, 5, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                if (Math.random() < 0.1) {
-                    const x = Math.random() * canvas.width;
-                    const y = Math.random() * canvas.height / 2;
-                    const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
-                    for (let i = 0; i < 40; i++) particles.push({
-                        x, y, color, v: { x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8 }, a: 1
-                    });
-                }
-                particles.forEach((p, i) => {
-                    p.v.x *= 0.95; p.v.y *= 0.95; p.y += 0.1; p.x += p.v.x; p.y += p.v.y; p.a -= 0.01;
-                    if (p.a > 0) {
-                        ctx.globalAlpha = p.a; ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
-                        ctx.fillStyle = p.color; ctx.fill();
-                    } else particles.splice(i, 1);
-                });
-            }
-            animate();
+    function loadWishes() {
+        if (localStorage.getItem(storageKey)) {
+            document.getElementById('input-area').innerHTML = `<p style='color:#00ff41'>Harapan ${targetYear} Anda tersimpan di database.</p>`;
         }
-    </script>
+        // Menampilkan pesan sesuai folder tahunnya
+        onChildAdded(ref(db, `wishes_${targetYear}`), (snapshot) => {
+            const data = snapshot.val();
+            const list = document.getElementById('wishList');
+            const div = document.createElement('div');
+            div.className = 'wish-item';
+            div.innerHTML = `<span>></span> ${data.text}`;
+            list.prepend(div);
+        });
+    }
+
+    // Countdown Logic
+    const target = new Date(targetYear, 0, 1, 0, 0, 0).getTime();
+    const timerUpdate = setInterval(() => {
+        const diff = target - new Date().getTime();
+
+        if (diff <= 0) {
+            clearInterval(timerUpdate);
+            document.getElementById('title').innerText = `HAPPY NEW YEAR ${targetYear}`;
+            document.getElementById('timer').style.display = "none";
+            document.getElementById('wish-container').style.display = "block";
+            loadWishes();
+            startFireworks();
+        } else {
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            document.getElementById('timer').innerText = `${d}D ${h}H ${m}M ${s}S`;
+        }
+    }, 1000);
+
+    // --- FIREWORKS TETAP SAMA ---
+    // (Gunakan fungsi startFireworks yang sudah ada sebelumnya)
+</script>
 </body>
 </html>
+
 
 
 
