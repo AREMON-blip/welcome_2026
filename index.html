@@ -69,7 +69,7 @@
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            timer.innerText = `T-MINUS: ${days}D ${hours.toString().padStart(2,'0')}H ${minutes.toString().padStart(2,'0')}M ${seconds.toString().padStart(2,'0')}S`;
+            timer.innerText = `${days}D ${hours.toString().padStart(2,'0')}H ${minutes.toString().padStart(2,'0')}M ${seconds.toString().padStart(2,'0')}S`;
         }, 1000);
 
         // --- LOGIKA KEMBANG API (FIREWORKS) ---
@@ -131,4 +131,5 @@
 </body>
 
 </html>
+
 
